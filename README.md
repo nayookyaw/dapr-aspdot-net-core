@@ -21,19 +21,21 @@ Dapr provides building blocks for service invocation, state management, pub/sub,
    dapr init
 
 2. Terminal 1: CatalogApi + Dapr sidecar
-    ```bash
+    <br>
     dapr run `
   --app-id catalog-api `
   --app-port 5001 `
   --dapr-http-port 3501 `
   --resources-path .\components `
   -- dotnet run --project .\CatalogApi\CatalogApi.csproj --urls http://localhost:5001
+    <br>
 
 3. Terminal 2: CheckoutApi + Dapr sidecar
-    ```bash
+    <br>
     dapr run `
   --app-id checkout-api `
   --app-port 5002 `
   --dapr-http-port 3502 `
   --resources-path .\components `
   -- dotnet run --project .\CheckoutApi\CheckoutApi.csproj --urls http://localhost:5002
+    </br>
