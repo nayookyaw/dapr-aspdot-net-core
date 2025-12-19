@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "FJnB4/Go1+4=",
+  "success": true,
+  "projectFilePath": "D:\\self-learning\\dapr-aspnet-core\\CatalogApi\\CatalogApi.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Nay Oo Kyaw\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.9\\microsoft.aspnetcore.openapi.9.0.9.nupkg.sha512",
+    "C:\\Users\\Nay Oo Kyaw\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
