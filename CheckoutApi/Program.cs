@@ -1,41 +1,69 @@
-var builder = WebApplication.CreateBuilder(args);
+using System.Net.Http.Json;
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddHttpClient(); // to call Dapr sidecar
 
 var app = builder.Build();
+app.UseSwagger();
+app.UseSwaggerUI();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Dapr sidecar HTTP endpoint for this app will be http://localhost:3502
+// (we will run it with --dapr-http-port 3502)
+const string daprSidecar = "http://localhost:3502";
+
+// 1) Call Catalog API via Dapr service invocation
+app.MapGet("/proxy/catalog/{id}", async (string id, IHttpClientFactory httpFactory) =>
 {
-    app.MapOpenApi();
-}
+    var http = httpFactory.CreateClient();
 
-app.UseHttpsRedirection();
+    // Dapr service invocation URL:
+    // /v1.0/invoke/{appId}/method/{path}
+    var url = $"{daprSidecar}/v1.0/invoke/catalog-api/method/items/{id}";
+    var result = await http.GetFromJsonAsync<object>(url);
 
-var summaries = new[]
+    return Results.Ok(result);
+});
+
+// 2) Save user cart to Dapr state store (Redis)
+app.MapPost("/cart/{userId}", async (string userId, Cart cart, IHttpClientFactory httpFactory) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    var http = httpFactory.CreateClient();
 
-app.MapGet("/weatherforecast", () =>
+    // Dapr state save endpoint:
+    // POST /v1.0/state/{storeName}
+    // body: [{ "key": "...", "value": ... }]
+    var body = new[]
+    {
+        new { key = $"cart-{userId}", value = cart }
+    };
+
+    var resp = await http.PostAsJsonAsync($"{daprSidecar}/v1.0/state/statestore", body);
+    resp.EnsureSuccessStatusCode();
+
+    return Results.Ok(new { message = "Saved", userId });
+});
+
+// 3) Read cart from Dapr state store
+app.MapGet("/cart/{userId}", async (string userId, IHttpClientFactory httpFactory) =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    var http = httpFactory.CreateClient();
+    var url = $"{daprSidecar}/v1.0/state/statestore/cart-{userId}";
+    var cart = await http.GetFromJsonAsync<Cart>(url) ?? new Cart();
+    return Results.Ok(cart);
+});
 
 app.Run();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+public class Cart
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    public List<CartItem> Items { get; set; } = new();
+}
+
+public class CartItem
+{
+    public string ItemId { get; set; } = "";
+    public int Quantity { get; set; }
 }
