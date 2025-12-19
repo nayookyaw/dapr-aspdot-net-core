@@ -21,7 +21,7 @@ Dapr provides building blocks for service invocation, state management, pub/sub,
    dapr init
 
 2. Terminal 1 (Powershell): CatalogApi + Dapr sidecar
-    <i>
+    <br/><i>
     dapr run `
   --app-id catalog-api `
   --app-port 5001 `
@@ -31,7 +31,7 @@ Dapr provides building blocks for service invocation, state management, pub/sub,
     <i>
 
 3. Terminal 2 (Powershell): CheckoutApi + Dapr sidecar
-    <i>
+    <br/><i>
     dapr run `
   --app-id checkout-api `
   --app-port 5002 `
