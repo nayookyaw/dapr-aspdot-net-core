@@ -27,6 +27,7 @@ Dapr provides building blocks for service invocation, state management, pub/sub,
   --app-port 5001 `
   --dapr-http-port 3501 `
   --resources-path .\components `
+  --config .\components\tracing.yaml `
   -- dotnet run --project .\CatalogApi\CatalogApi.csproj --urls http://localhost:5001
     <i>
 
@@ -37,5 +38,6 @@ Dapr provides building blocks for service invocation, state management, pub/sub,
   --app-port 5002 `
   --dapr-http-port 3502 `
   --resources-path .\components `
+  --config .\components\tracing.yaml `
   -- dotnet run --project .\CheckoutApi\CheckoutApi.csproj --urls http://localhost:5002
     </i>

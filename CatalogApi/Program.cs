@@ -15,7 +15,7 @@ var items = new Dictionary<string, (string Name, decimal Price)>
     ["C003"] = ("Coffee", 4.50m),
 };
 
-app.MapGet("/item/{id}", (string id) =>
+app.MapGet("/items/{id}", (string id) =>
 {
     if (!items.TryGetValue(id, out var item))
         return Results.NotFound(new { message = "Item not found", id });

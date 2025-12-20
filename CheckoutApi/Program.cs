@@ -1,6 +1,8 @@
 using System.Net.Http.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -12,19 +14,24 @@ app.UseSwaggerUI();
 
 // Dapr sidecar HTTP endpoint for this app will be http://localhost:3502
 // (we will run it with --dapr-http-port 3502)
-const string daprSidecar = "http://localhost:3502";
+const string daprSidecar = "http://localhost:3501";
 
 // 1) Call Catalog API via Dapr service invocation
 app.MapGet("/proxy/catalog/{id}", async (string id, IHttpClientFactory httpFactory) =>
 {
     var http = httpFactory.CreateClient();
 
-    // Dapr service invocation URL:
-    // /v1.0/invoke/{appId}/method/{path}
-    var url = $"{daprSidecar}/v1.0/invoke/catalog-api/method/items/{id}";
-    var result = await http.GetFromJsonAsync<object>(url);
+    var url = $"http://localhost:3501/v1.0/invoke/catalog-api/method/items/{id}";
+    Console.WriteLine($"Calling: {url}");
 
-    return Results.Ok(result);
+    var response = await http.GetAsync(url);
+    var body = await response.Content.ReadAsStringAsync();
+
+    Console.WriteLine($"Status: {(int)response.StatusCode}");
+
+    // Return body regardless of status
+    return Results.Content(body, response.Content.Headers.ContentType?.ToString() ?? "application/json",
+        statusCode: (int)response.StatusCode);
 });
 
 // 2) Save user cart to Dapr state store (Redis)
@@ -55,6 +62,7 @@ app.MapGet("/cart/{userId}", async (string userId, IHttpClientFactory httpFactor
     return Results.Ok(cart);
 });
 
+app.MapControllers();
 app.Run();
 
 public class Cart
